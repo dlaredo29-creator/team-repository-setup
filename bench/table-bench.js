@@ -21,3 +21,5 @@ window.TABLE = {
     { name: 'nobody', when: s => s.present < 0.2, hold: 2 },
   ],
 };
+
+monitor_speed = 115200

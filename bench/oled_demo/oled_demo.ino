@@ -13,6 +13,7 @@
 
 #include <U8g2lib.h>
 #include <Wire.h>
+#include <math.h>
 
 // Page mode: draws the screen in eight strips with a 128-byte buffer, because
 // the Nano has 2 KB of RAM and a full frame would take half of it.
@@ -21,9 +22,12 @@ U8G2_SSD1306_128X64_NONAME_1_HW_I2C oled(U8G2_R0, U8X8_PIN_NONE);
 const int TRIG = 9;
 const int ECHO = 10;
 
-const float CLOSE_CM = 10.0;
-const float DETECTED_CM = 50.0;
+const float CLOSE_CM = 6.0;
+const float DETECTED_CM = 30.0;
 const float MAX_CM = 200.0;      // top of the graph and the sonar range
+const uint8_t FIGURE_POINT_COUNT = 12;
+const uint8_t FIGURE_POSE_COUNT = 5;
+const float FIGURE_RISE_RATE_PER_SECOND = 0.55f;
 
 const int GRAPH_H = 10;          // the trace, rows 53 to 63
 uint8_t hist[128];               // one column per reading, 0..GRAPH_H
@@ -36,6 +40,8 @@ uint8_t ping = 0;                // expanding ring radius
 uint8_t rate = 0;                // readings in the last second, for the header
 uint8_t count = 0;
 unsigned long rateStart = 0;
+float figureProgress = 0.0f;
+unsigned long lastFrameMs = 0;
 
 float readCm() {
   digitalWrite(TRIG, LOW);
@@ -61,7 +67,7 @@ void splash() {
 
 void drawHeader(float cm) {
   // Rows 0-15, the yellow strip: state badge left, readings per second right.
-  const char *label = cm < CLOSE_CM ? "CLOSE" : cm <= DETECTED_CM ? "DETECTED" : "NOBODY";
+  const char *label = cm < CLOSE_CM ? "CLOSE" : cm <= DETECTED_CM ? "MEDIUM" : "EMPTY";
   oled.setFont(u8g2_font_6x12_tr);
   int w = oled.getStrWidth(label) + 8;
   if (cm < CLOSE_CM) {             // close: solid badge
@@ -99,40 +105,109 @@ void drawNumber(float cm) {
   oled.drawStr(x, 45, "cm");
 }
 
-enum ThumbOrientation {
-  THUMB_UP,
-  THUMB_DOWN,
-  THUMB_SIDEWAYS
-};
+static const int8_t FIGURE_POSES[FIGURE_POSE_COUNT][FIGURE_POINT_COUNT][2] = {
+    {{0, 14}, {0, 9}, {0, 6}, {-9, 6}, {-14, 9}, {9, 6}, {14, 9},
+     {0, -7}, {-6, -14}, {-9, -20}, {6, -14}, {9, -20}},
+    {{-7, 9}, {-4, 6}, {-2, 4}, {-9, 2}, {-13, 6}, {5, 0}, {10, -1},
+     {3, -1}, {8, 5}, {13, 10}, {10, -6}, {14, -11}},
+    {{0, 1}, {0, 5}, {0, 7}, {-9, 6}, {-13, 10}, {9, 6}, {13, 10},
+     {0, 12}, {-7, 16}, {-9, 19}, {7, 15}, {10, 19}},
+    {{0, -11}, {0, -7}, {0, -5}, {-9, -3}, {-13, 2}, {9, -3}, {13, 2},
+     {0, 5}, {-6, 11}, {-8, 18}, {6, 11}, {8, 18}},
+    {{0, -15}, {0, -11}, {0, -9}, {-10, -5}, {-14, 0}, {10, -5}, {14, 0},
+     {0, 3}, {-6, 10}, {-8, 18}, {6, 10}, {8, 18}}};
 
-void drawThumbBox(int x, int y, int ox, int oy, int w, int h,
-                  ThumbOrientation orientation) {
-  int drawX = x + ox;
-  int drawY = y + oy;
+void drawStickFigure(int originX, int originY, float progress) {
+  const float posePosition = constrain(progress, 0.0f, 1.0f) *
+                             (FIGURE_POSE_COUNT - 1);
+  uint8_t firstPose = (uint8_t)posePosition;
+  float blend = posePosition - firstPose;
+  if (firstPose >= FIGURE_POSE_COUNT - 1) {
+    firstPose = FIGURE_POSE_COUNT - 2;
+    blend = 1.0f;
+  }
+  blend = blend * blend * (3.0f - 2.0f * blend);
 
-  if (orientation == THUMB_DOWN) {
-    drawY = y + 32 - oy - h;
-  } else if (orientation == THUMB_SIDEWAYS) {
-    drawX = x + 32 - oy - h;
-    drawY = y + ox;
-    const int originalWidth = w;
-    w = h;
-    h = originalWidth;
+  int8_t points[FIGURE_POINT_COUNT][2];
+  for (uint8_t point = 0; point < FIGURE_POINT_COUNT; ++point) {
+    for (uint8_t axis = 0; axis < 2; ++axis) {
+      const int8_t start = FIGURE_POSES[firstPose][point][axis];
+      const int8_t end = FIGURE_POSES[firstPose + 1][point][axis];
+      points[point][axis] = (int8_t)lroundf(start + (end - start) * blend);
+    }
   }
 
-  oled.drawBox(drawX, drawY, w, h);
+  const int headX = originX + points[0][0];
+  const int headY = originY + points[0][1];
+  oled.drawCircle(headX, headY, 3);
+  oled.drawLine(headX, headY + (points[1][1] > points[0][1] ? 3 : -3),
+                originX + points[1][0], originY + points[1][1]);
+  oled.drawLine(originX + points[1][0], originY + points[1][1],
+                originX + points[2][0], originY + points[2][1]);
+  oled.drawLine(originX + points[2][0], originY + points[2][1],
+                originX + points[7][0], originY + points[7][1]);
+  oled.drawLine(originX + points[2][0], originY + points[2][1],
+                originX + points[3][0], originY + points[3][1]);
+  oled.drawLine(originX + points[3][0], originY + points[3][1],
+                originX + points[4][0], originY + points[4][1]);
+  oled.drawLine(originX + points[2][0], originY + points[2][1],
+                originX + points[5][0], originY + points[5][1]);
+  oled.drawLine(originX + points[5][0], originY + points[5][1],
+                originX + points[6][0], originY + points[6][1]);
+  oled.drawLine(originX + points[7][0], originY + points[7][1],
+                originX + points[8][0], originY + points[8][1]);
+  oled.drawLine(originX + points[8][0], originY + points[8][1],
+                originX + points[9][0], originY + points[9][1]);
+  oled.drawLine(originX + points[7][0], originY + points[7][1],
+                originX + points[10][0], originY + points[10][1]);
+  oled.drawLine(originX + points[10][0], originY + points[10][1],
+                originX + points[11][0], originY + points[11][1]);
+
+  for (uint8_t point = 2; point < FIGURE_POINT_COUNT; ++point) {
+    if (point == 4 || point == 6 || point == 9 || point == 11) continue;
+    oled.drawDisc(originX + points[point][0], originY + points[point][1], 1);
+  }
 }
 
-void drawThumb(int x, int y, ThumbOrientation orientation) {
-  drawThumbBox(x, y, 10, 10, 15, 15, orientation);
-  drawThumbBox(x, y, 5, 5, 8, 10, orientation);
-  drawThumbBox(x, y, 4, 1, 7, 6, orientation);
-  drawThumbBox(x, y, 9, 8, 6, 5, orientation);
-  drawThumbBox(x, y, 23, 11, 4, 3, orientation);
-  drawThumbBox(x, y, 24, 14, 4, 3, orientation);
-  drawThumbBox(x, y, 24, 17, 4, 3, orientation);
-  drawThumbBox(x, y, 23, 20, 4, 3, orientation);
-  drawThumbBox(x, y, 14, 25, 11, 6, orientation);
+float getUpProgress(float cm) {
+  if (cm <= CLOSE_CM) return 1.0f;
+  if (cm >= DETECTED_CM) return 0.0f;
+  return (DETECTED_CM - cm) / (DETECTED_CM - CLOSE_CM);
+}
+
+void approachFigure(float targetProgress, unsigned long nowMs) {
+  const float maximumStep = (nowMs - lastFrameMs) *
+                            (FIGURE_RISE_RATE_PER_SECOND / 1000.0f);
+  const float difference = targetProgress - figureProgress;
+  if (difference > maximumStep) {
+    figureProgress += maximumStep;
+  } else if (difference < -maximumStep) {
+    figureProgress -= maximumStep;
+  } else {
+    figureProgress = targetProgress;
+  }
+}
+
+void drawStateAccents(float cm) {
+  if (cm < CLOSE_CM) {
+    oled.drawLine(78, 22, 82, 25);
+    oled.drawLine(77, 35, 82, 35);
+    oled.drawLine(78, 48, 82, 45);
+    oled.drawLine(118, 25, 123, 22);
+    oled.drawLine(118, 35, 124, 35);
+    oled.drawLine(118, 45, 123, 48);
+  } else if (cm <= DETECTED_CM) {
+    const int bob = (millis() / 120) % 2;
+    oled.drawCircle(80, 24 + bob, 2);
+    oled.drawLine(119, 26 - bob, 124, 23 - bob);
+    oled.drawLine(78, 46, 82, 46);
+    oled.drawLine(119, 45, 124, 48);
+  } else {
+    oled.drawCircle(80, 45, 2);
+    oled.drawCircle(120, 45, 2);
+    oled.drawDisc(86, 50, 1);
+    oled.drawDisc(115, 50, 1);
+  }
 }
 
 void drawSonar(float cm) {
@@ -172,6 +247,7 @@ void setup() {
   oled.begin();
   oled.setBusClock(400000);
   splash();
+  lastFrameMs = millis();
 }
 
 void loop() {
@@ -181,7 +257,7 @@ void loop() {
   Serial.print(cm, 1);
   Serial.println();
 
-  smooth += (min(cm, 400.0f) - smooth) * 0.35;
+  smooth += (min(cm, 400.0f) - smooth) * 0.12;
 
   count++;
   if (millis() - rateStart >= 1000) {
@@ -195,6 +271,10 @@ void loop() {
   hist[head] = (uint8_t)((1.0 - c / MAX_CM) * GRAPH_H);
   head = (head + 1) % 128;
 
+  const unsigned long frameTimeMs = millis();
+  approachFigure(getUpProgress(smooth), frameTimeMs);
+  lastFrameMs = frameTimeMs;
+
   sweep += 6 * sweepDir;
   if (sweep > 60 || sweep < -60) sweepDir = -sweepDir;
   ping = (ping + 3) % 36;
@@ -203,9 +283,8 @@ void loop() {
   do {
     drawHeader(cm);
     drawNumber(smooth);
-    if (cm < CLOSE_CM) drawThumb(84, 19, THUMB_UP);
-    else if (cm <= DETECTED_CM) drawThumb(84, 19, THUMB_SIDEWAYS);
-    else drawThumb(84, 19, THUMB_DOWN);
+    drawStateAccents(smooth);
+    drawStickFigure(100, 35, figureProgress);
     drawGraph();
   } while (oled.nextPage());
 }
