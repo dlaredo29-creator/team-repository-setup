@@ -69,12 +69,19 @@ void drawHeader(float cm) {
   // Rows 0-15, the yellow strip: state badge left, readings per second right.
   const char *label = cm < CLOSE_CM ? "CLOSE" : cm <= DETECTED_CM ? "MEDIUM" : "EMPTY";
   oled.setFont(u8g2_font_6x12_tr);
-  int w = oled.getStrWidth(label) + 8;
+  const bool medium = cm >= CLOSE_CM && cm <= DETECTED_CM;
+  int w = oled.getStrWidth(label) + 8 + (medium ? 12 : 0);
   if (cm < CLOSE_CM) {             // close: solid badge
     oled.drawRBox(0, 1, w, 13, 3);
     oled.setDrawColor(0);
     oled.drawStr(4, 11, label);
     oled.setDrawColor(1);
+  } else if (medium) {
+    oled.drawRFrame(0, 1, w, 13, 3);
+    oled.drawBox(4, 8, 2, 3);
+    oled.drawBox(7, 5, 2, 6);
+    oled.drawBox(10, 7, 2, 4);
+    oled.drawStr(15, 11, label);
   } else {
     oled.drawRFrame(0, 1, w, 13, 3);
     oled.drawStr(4, 11, label);
@@ -170,9 +177,9 @@ void drawStickFigure(int originX, int originY, float progress) {
 }
 
 float getUpProgress(float cm) {
-  if (cm <= CLOSE_CM) return 1.0f;
-  if (cm >= DETECTED_CM) return 0.0f;
-  return (DETECTED_CM - cm) / (DETECTED_CM - CLOSE_CM);
+  if (cm < CLOSE_CM) return 1.0f;
+  if (cm <= DETECTED_CM) return 0.5f;
+  return 0.0f;
 }
 
 void approachFigure(float targetProgress, unsigned long nowMs) {
