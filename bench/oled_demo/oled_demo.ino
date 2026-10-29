@@ -21,8 +21,8 @@ U8G2_SSD1306_128X64_NONAME_1_HW_I2C oled(U8G2_R0, U8X8_PIN_NONE);
 const int TRIG = 9;
 const int ECHO = 10;
 
-const float NEAR_CM = 30.0;      // badge thresholds for the screen only;
-const float HERE_CM = 120.0;     // the real State Table lives in the browser
+const float CLOSE_CM = 10.0;
+const float DETECTED_CM = 50.0;
 const float MAX_CM = 200.0;      // top of the graph and the sonar range
 
 const int GRAPH_H = 10;          // the trace, rows 53 to 63
@@ -61,10 +61,10 @@ void splash() {
 
 void drawHeader(float cm) {
   // Rows 0-15, the yellow strip: state badge left, readings per second right.
-  const char *label = cm < NEAR_CM ? "NEAR" : cm < HERE_CM ? "HERE" : "EMPTY";
+  const char *label = cm < CLOSE_CM ? "CLOSE" : cm <= DETECTED_CM ? "DETECTED" : "NOBODY";
   oled.setFont(u8g2_font_6x12_tr);
   int w = oled.getStrWidth(label) + 8;
-  if (cm < NEAR_CM) {              // near: solid badge
+  if (cm < CLOSE_CM) {             // close: solid badge
     oled.drawRBox(0, 1, w, 13, 3);
     oled.setDrawColor(0);
     oled.drawStr(4, 11, label);
@@ -99,6 +99,42 @@ void drawNumber(float cm) {
   oled.drawStr(x, 45, "cm");
 }
 
+enum ThumbOrientation {
+  THUMB_UP,
+  THUMB_DOWN,
+  THUMB_SIDEWAYS
+};
+
+void drawThumbBox(int x, int y, int ox, int oy, int w, int h,
+                  ThumbOrientation orientation) {
+  int drawX = x + ox;
+  int drawY = y + oy;
+
+  if (orientation == THUMB_DOWN) {
+    drawY = y + 32 - oy - h;
+  } else if (orientation == THUMB_SIDEWAYS) {
+    drawX = x + 32 - oy - h;
+    drawY = y + ox;
+    const int originalWidth = w;
+    w = h;
+    h = originalWidth;
+  }
+
+  oled.drawBox(drawX, drawY, w, h);
+}
+
+void drawThumb(int x, int y, ThumbOrientation orientation) {
+  drawThumbBox(x, y, 10, 10, 15, 15, orientation);
+  drawThumbBox(x, y, 5, 5, 8, 10, orientation);
+  drawThumbBox(x, y, 4, 1, 7, 6, orientation);
+  drawThumbBox(x, y, 9, 8, 6, 5, orientation);
+  drawThumbBox(x, y, 23, 11, 4, 3, orientation);
+  drawThumbBox(x, y, 24, 14, 4, 3, orientation);
+  drawThumbBox(x, y, 24, 17, 4, 3, orientation);
+  drawThumbBox(x, y, 23, 20, 4, 3, orientation);
+  drawThumbBox(x, y, 14, 25, 11, 6, orientation);
+}
+
 void drawSonar(float cm) {
   const int ox = 99, oy = 50, R = 28;
   // range rings and the frame of the fan
@@ -114,7 +150,7 @@ void drawSonar(float cm) {
   if (cm < MAX_CM) {
     float r = cm / MAX_CM * R;
     int bx = ox + r * cos(a), by = oy + r * sin(a);
-    oled.drawDisc(bx, by, cm < NEAR_CM ? 3 : 2);
+    oled.drawDisc(bx, by, cm < CLOSE_CM ? 3 : 2);
   }
 }
 
@@ -165,9 +201,11 @@ void loop() {
 
   oled.firstPage();
   do {
-    drawHeader(smooth);
+    drawHeader(cm);
     drawNumber(smooth);
-    drawSonar(smooth);
+    if (cm < CLOSE_CM) drawThumb(84, 19, THUMB_UP);
+    else if (cm <= DETECTED_CM) drawThumb(84, 19, THUMB_SIDEWAYS);
+    else drawThumb(84, 19, THUMB_DOWN);
     drawGraph();
   } while (oled.nextPage());
 }
