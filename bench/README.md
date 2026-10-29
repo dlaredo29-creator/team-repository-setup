@@ -45,7 +45,7 @@ Flash `bench/bench.ino` for the sensor alone. Open `bench.html` on localhost in 
 
 ### The screen (optional)
 
-`bench/oled_demo/oled_demo.ino` is `bench.ino` plus a readout on a 0.96 in SSD1306 screen (128 x 64, I2C): a state badge, the distance in big digits, and a scrolling trace of the history. CLOSE (<10 cm) shows a thumbs-up, DETECTED (10–50 cm) a sideways thumb, and NOBODY (>50 cm or no echo) a thumbs-down. It prints the same lines over USB, so `bench.html` works with it unchanged. It needs the **U8g2** library (Arduino IDE → Library Manager). On the two-colour screens the top strip is yellow and holds the status.
+`bench/oled_demo/oled_demo.ino` is `bench.ino` plus a readout on a 0.96 in SSD1306 screen (128 x 64, I2C): a state badge, the distance in big digits, a smoothly tilting thumb, original cartoon action marks, and a scrolling trace. CLOSE (<6 cm) is thumbs-up, MEDIUM (6–30 cm) tilts across the range, and EMPTY (>30 cm or no echo) is thumbs-down. It prints the same lines over USB, so `bench.html` works with it unchanged. It needs the **U8g2** library (Arduino IDE → Library Manager). On the two-colour screens the top strip is yellow and holds the status.
 
 ![Three photos of the screen side by side: EMPTY reading 400 cm with no echo, HERE at 51.5 cm, NEAR at 7.2 cm with a large dot on the sonar.](img/screen-states.jpg)
 

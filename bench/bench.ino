@@ -15,6 +15,8 @@
 // before the println, e.g. a photoresistor divider on A0:
 //   Serial.print(" light "); Serial.print(analogRead(A0));
 
+#include <Arduino.h>
+
 const int TRIG = 9;
 const int ECHO = 10;
 
