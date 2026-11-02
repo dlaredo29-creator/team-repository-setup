@@ -76,9 +76,9 @@ function clamp(x) {
   return Math.min(1, Math.max(0, x));
 }
 
-// Smoothing: each new reading moves the signal a fraction of the way. Higher is
-// jumpier, lower is calmer. Thresholds in table.js read the smoothed numbers.
-const SMOOTHING = 0.25;
+// Time-based smoothing keeps signals consistent across different camera rates.
+const SIGNAL_SMOOTHING_MS = 140;
+let lastSignalUpdate = 0;
 
 // ---- The State Table, applied ----------------------------------------------
 
@@ -111,11 +111,14 @@ function tick() {
   if (video.currentTime !== lastVideoTime) {
     lastVideoTime = video.currentTime;
     const result = landmarker.detectForVideo(video, now);
+    const elapsed = lastSignalUpdate ? now - lastSignalUpdate : 1000 / 30;
+    const smoothing = 1 - Math.exp(-elapsed / SIGNAL_SMOOTHING_MS);
     for (const name of window.TABLE.signals) {
       const read = SIGNALS[name];
       if (!read) continue;
-      signals[name] += (clamp(read(result)) - signals[name]) * SMOOTHING;
+      signals[name] += (clamp(read(result)) - signals[name]) * smoothing;
     }
+    lastSignalUpdate = now;
     latestScores = result.faceBlendshapes[0] ? result.faceBlendshapes[0].categories : [];
   }
   applyTable(now);
