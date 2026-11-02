@@ -7,20 +7,17 @@ enum DistanceState {
   DISTANCE_NOBODY
 };
 
-constexpr float CLOSE_DISTANCE_CM = 6.0f;
+constexpr float CLOSE_DISTANCE_CM = 7.5f;
 constexpr float DETECTED_DISTANCE_CM = 30.0f;
 
 inline float getUpProgress(float distanceCm) {
-  const float progress =
-      (DETECTED_DISTANCE_CM - distanceCm) /
-      (DETECTED_DISTANCE_CM - CLOSE_DISTANCE_CM);
-  if (progress < 0.0f) return 0.0f;
-  if (progress > 1.0f) return 1.0f;
-  return progress;
+  if (distanceCm <= CLOSE_DISTANCE_CM) return 1.0f;
+  if (distanceCm <= DETECTED_DISTANCE_CM) return 0.5f;
+  return 0.0f;
 }
 
 inline DistanceState classifyDistance(float distanceCm) {
-  if (distanceCm < CLOSE_DISTANCE_CM) {
+  if (distanceCm <= CLOSE_DISTANCE_CM) {
     return DISTANCE_CLOSE;
   }
   if (distanceCm <= DETECTED_DISTANCE_CM) {
