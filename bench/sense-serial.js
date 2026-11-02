@@ -33,7 +33,7 @@ function clamp(x) {
   return Math.min(1, Math.max(0, x));
 }
 
-const SMOOTHING = 0.25;
+const SIGNAL_SMOOTHING_MS = 140;
 
 // ---- The State Table, applied (the same as sense.js) -------------------------
 
@@ -42,6 +42,7 @@ let candidate = null;
 let candidateSince = 0;
 let latest = {};
 let failed = false;
+let lastReadingAt = 0;
 
 function applyTable(now) {
   const rows = window.TABLE.states;
@@ -74,11 +75,15 @@ function parse(line) {
 }
 
 function onReading(reading) {
+  const now = performance.now();
+  const elapsed = lastReadingAt ? now - lastReadingAt : 50;
+  const smoothing = 1 - Math.exp(-elapsed / SIGNAL_SMOOTHING_MS);
+  lastReadingAt = now;
   latest = reading;
   for (const name of window.TABLE.signals) {
     const read = SIGNALS[name];
     if (!read) continue;
-    signals[name] += (clamp(read(reading)) - signals[name]) * SMOOTHING;
+    signals[name] += (clamp(read(reading)) - signals[name]) * smoothing;
   }
 }
 
