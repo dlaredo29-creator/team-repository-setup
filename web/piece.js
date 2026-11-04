@@ -6,10 +6,17 @@
 
 const canvas = document.querySelector('#piece');
 const ctx = canvas.getContext('2d');
+let lastFrame = 0;
+let lastState = window.sense.state;
+let previousState = lastState;
+let transitionStarted = performance.now();
+let radius = 0;
 
 function resize() {
-  canvas.width = innerWidth * devicePixelRatio;
-  canvas.height = innerHeight * devicePixelRatio;
+  const scale = Math.max(1, devicePixelRatio || 1);
+  canvas.width = Math.round(innerWidth * scale);
+  canvas.height = Math.round(innerHeight * scale);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
 }
 addEventListener('resize', resize);
 resize();
@@ -25,21 +32,47 @@ function colorFor(state) {
   return `hsl(${hash}, 85%, 50%)`;
 }
 
-function frame() {
-  const { state, signals, since } = window.sense;
-  const held = performance.now() - since; // ms in this state
+function frame(now) {
+  const { state, signals } = window.sense;
+  const elapsed = lastFrame ? Math.min(64, now - lastFrame) : 16;
+  lastFrame = now;
+  if (state !== lastState) {
+    previousState = lastState;
+    lastState = state;
+    transitionStarted = now;
+  }
 
+  const transition = Math.min(1, (now - transitionStarted) / 450);
+  const easedTransition = transition * transition * (3 - 2 * transition);
+  ctx.fillStyle = colorFor(previousState);
+  ctx.fillRect(0, 0, innerWidth, innerHeight);
+  ctx.globalAlpha = easedTransition;
   ctx.fillStyle = colorFor(state);
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, innerWidth, innerHeight);
+  ctx.globalAlpha = 1;
 
-  if (state !== 'nobody') {
-    const r = Math.min(canvas.width, canvas.height) * (0.05 + 0.35 * (signals.open || 0));
-    const fadeIn = Math.min(1, held / 600);
-    ctx.globalAlpha = fadeIn;
-    ctx.fillStyle = '#f2efe9';
+  const targetRadius = state === 'nobody'
+    ? 0
+    : Math.min(innerWidth, innerHeight) * (0.05 + 0.35 * (signals.open || 0));
+  radius += (targetRadius - radius) * (1 - Math.exp(-elapsed / 180));
+
+  if (radius > 1) {
+    const sway = Math.sin(now / 1300) * Math.min(innerWidth, innerHeight) * 0.008;
+    const centerX = innerWidth / 2 + sway;
+    const centerY = innerHeight / 2 + Math.cos(now / 1700) * 5;
+    const opacity = Math.min(0.9, radius / 28);
+    ctx.globalAlpha = opacity;
+    ctx.shadowColor = '#f2efe9';
+    ctx.shadowBlur = radius * 0.22;
+    const glow = ctx.createRadialGradient(centerX, centerY, radius * 0.25,
+      centerX, centerY, radius);
+    glow.addColorStop(0, '#f2efe9');
+    glow.addColorStop(1, 'rgba(242, 239, 233, 0.72)');
+    ctx.fillStyle = glow;
     ctx.beginPath();
-    ctx.arc(canvas.width / 2, canvas.height / 2, r, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
     ctx.fill();
+    ctx.shadowBlur = 0;
     ctx.globalAlpha = 1;
   }
 
