@@ -251,6 +251,23 @@ void setup() {
   Serial.begin(115200);          // sense-serial.js opens the port at this speed
   pinMode(TRIG, OUTPUT);
   pinMode(ECHO, INPUT);
+  Wire.begin();
+  uint8_t oledAddress = 0;
+  for (uint8_t address = 1; address < 127; ++address) {
+    Wire.beginTransmission(address);
+    if (Wire.endTransmission() == 0 &&
+        (address == 0x3C || address == 0x3D)) {
+      oledAddress = address;
+      break;
+    }
+  }
+  if (oledAddress != 0) {
+    oled.setI2CAddress(oledAddress << 1);
+    Serial.print("OLED found at 0x");
+    Serial.println(oledAddress, HEX);
+  } else {
+    Serial.println("OLED not found at 0x3C or 0x3D; check VCC, GND, SDA, and SCL.");
+  }
   oled.begin();
   oled.setBusClock(400000);
   splash();

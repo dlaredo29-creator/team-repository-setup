@@ -163,12 +163,23 @@ void setup() {
   pinMode(ECHO_PIN, INPUT);
   Wire.begin();
   Serial.println("I2C scan:");
+  uint8_t oledAddress = 0;
   for (uint8_t address = 1; address < 127; ++address) {
     Wire.beginTransmission(address);
     if (Wire.endTransmission() == 0) {
       Serial.print("Found 0x");
       Serial.println(address, HEX);
+      if (address == 0x3C || address == 0x3D) {
+        oledAddress = address;
+      }
     }
+  }
+  if (oledAddress != 0) {
+    oled.setI2CAddress(oledAddress << 1);
+    Serial.print("OLED initialized at 0x");
+    Serial.println(oledAddress, HEX);
+  } else {
+    Serial.println("OLED not found at 0x3C or 0x3D; check VCC, GND, SDA, and SCL.");
   }
   oled.begin();
   lastSensorReadMs = millis();

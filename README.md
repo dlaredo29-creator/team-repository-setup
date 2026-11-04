@@ -10,15 +10,24 @@ Computer Coding Studio, fall 2026. The camera, the model, one worked signal and 
 2. Both partners clone it, open it in VS Code, and run it with a local server. Live Server works, or in the terminal: `python3 -m http.server`, then open `http://localhost:8000`. Opening `index.html` straight from the Finder will not reach the camera.
 3. Turn on GitHub Pages: Settings, Pages, branch `main`, folder `/ (root)`. That address is the live URL you submit.
 
+## Project structure
+
+This repo is organized by job instead of by file type:
+
+- `web/` — browser prototype and state table
+- `bench/` — Arduino bench build, wiring notes, and browser serial demo
+- `firmware/` — PlatformIO firmware for the team project
+- `BREAK_LOG.md` — project notes and fixes
+
 ## The files
 
 | File | Job | Who edits it |
 |---|---|---|
-| `table.js` | Your State Table, row for row: the signals, the states, the rules, the holds | both of you, first |
-| `sense.js` | Reads the camera, turns readings into signals, applies the table, writes `window.sense` | each partner, your own signal |
-| `piece.js` | Reads `window.sense` every frame and answers | both of you |
-| `fake-sense.js` | Writes the same object with no camera: number keys set the state, the mouse sets the signals | only if your signal names change |
-| `index.html` | Loads them in order | rarely |
+| `web/table.js` | Your State Table, row for row: the signals, the states, the rules, the holds | both of you, first |
+| `web/sense.js` | Reads the camera, turns readings into signals, applies the table, writes `window.sense` | each partner, your own signal |
+| `web/piece.js` | Reads `window.sense` every frame and answers | both of you |
+| `web/fake-sense.js` | Writes the same object with no camera: number keys set the state, the mouse sets the signals | only if your signal names change |
+| `web/index.html` | Loads them in order | rarely |
 
 ## The object
 
