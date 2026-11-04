@@ -2,7 +2,6 @@
 #include <U8g2lib.h>
 #include <Wire.h>
 #include <math.h>
-#include <stdio.h>
 #include "distance_state.h"
 
 U8G2_SSD1306_128X64_NONAME_1_HW_I2C oled(U8G2_R0, U8X8_PIN_NONE);
@@ -10,8 +9,6 @@ U8G2_SSD1306_128X64_NONAME_1_HW_I2C oled(U8G2_R0, U8X8_PIN_NONE);
 const uint8_t TRIG_PIN = 9;
 const uint8_t ECHO_PIN = 10;
 
-float latestDistanceCm = 400.0f;
-float figureDistanceCm = 400.0f;
 const uint8_t FIGURE_POINT_COUNT = 12;
 const uint8_t FIGURE_POSE_COUNT = 5;
 const float FIGURE_RESPONSE_MS = 420.0f;
@@ -19,6 +16,10 @@ unsigned long lastSensorReadMs = 0;
 unsigned long lastFrameMs = 0;
 
 float figureProgress = 0.0f;
+float latestDistanceCm = 400.0f;
+DistanceStateTracker stateTracker;
+DistanceState currentState = DISTANCE_NOBODY;
+
 float readDistanceCm() {
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
@@ -101,49 +102,41 @@ void approachFigure(float targetProgress, unsigned long nowMs) {
 }
 
 void drawStateAccents(DistanceState state) {
-  if (state == DISTANCE_CLOSE) {
-    oled.drawLine(41, 22, 46, 25);
-    oled.drawLine(39, 32, 45, 32);
-    oled.drawLine(41, 42, 46, 39);
-    oled.drawLine(82, 25, 87, 22);
-    oled.drawLine(83, 32, 89, 32);
-    oled.drawLine(82, 39, 87, 42);
-  } else if (state == DISTANCE_DETECTED) {
-    oled.drawBox(59, 16, 2, 3);
-    oled.drawBox(63, 14, 2, 5);
-    oled.drawBox(67, 16, 2, 3);
+  if (state == DISTANCE_RUSHING) {
+    oled.drawFrame(52, 18, 24, 24);
+    oled.drawVLine(64, 23, 11);
+    oled.drawDisc(64, 38, 1);
+  } else if (state == DISTANCE_UNHURRIED) {
     oled.drawCircle(43, 20, 2);
-    oled.drawLine(83, 20, 88, 17);
-    oled.drawLine(39, 46, 45, 46);
-    oled.drawLine(84, 45, 89, 48);
+    oled.drawCircle(85, 20, 2);
+    oled.drawLine(43, 46, 49, 46);
+    oled.drawLine(79, 46, 85, 46);
   } else {
-    oled.drawCircle(43, 44, 2);
-    oled.drawCircle(85, 43, 2);
-    oled.drawDisc(51, 49, 1);
-    oled.drawDisc(77, 49, 1);
+    oled.drawCircle(43, 20, 2);
+    oled.drawCircle(85, 20, 2);
   }
 }
 
-void showDistanceState(DistanceState state, float distanceCm,
-                       float figurePoseProgress) {
+void showSensorState(DistanceState state, float figurePoseProgress) {
+  if (state == DISTANCE_NOBODY) {
+    oled.setPowerSave(1);
+    return;
+  }
+  oled.setPowerSave(0);
+
   const char *label;
 
   switch (state) {
-    case DISTANCE_CLOSE:
-      label = "CLOSE";
+    case DISTANCE_UNHURRIED:
+      label = "UNHURRIED";
       break;
-    case DISTANCE_DETECTED:
-      label = "MEDIUM";
+    case DISTANCE_RUSHING:
+      label = "RUSHING";
       break;
     default:
-      label = "EMPTY";
+      label = "DETECTING";
       break;
   }
-
-  char distanceText[12];
-  const int wholeCm = (int)distanceCm;
-  const int tenths = (int)(distanceCm * 10.0f) % 10;
-  snprintf(distanceText, sizeof(distanceText), "%d.%d cm", wholeCm, tenths);
 
   oled.firstPage();
   do {
@@ -151,9 +144,9 @@ void showDistanceState(DistanceState state, float distanceCm,
     const int labelWidth = oled.getStrWidth(label);
     oled.drawStr((128 - labelWidth) / 2, 12, label);
     drawStateAccents(state);
-    drawStickFigure(64, 35, figurePoseProgress);
-    const int distanceWidth = oled.getStrWidth(distanceText);
-    oled.drawStr((128 - distanceWidth) / 2, 63, distanceText);
+    if (state != DISTANCE_RUSHING) {
+      drawStickFigure(64, 39, figurePoseProgress);
+    }
   } while (oled.nextPage());
 }
 
@@ -179,17 +172,18 @@ void loop() {
   const unsigned long nowMs = millis();
   if (nowMs - lastSensorReadMs >= 50) {
     latestDistanceCm = readDistanceCm();
-    figureDistanceCm += (latestDistanceCm - figureDistanceCm) * 0.12f;
-    Serial.print("cm ");
-    Serial.println(latestDistanceCm, 1);
+    currentState = stateTracker.update(millis(), latestDistanceCm);
     lastSensorReadMs = millis();
   }
 
   const unsigned long frameTimeMs = millis();
   if (frameTimeMs - lastFrameMs >= 33) {
-    approachFigure(getUpProgress(figureDistanceCm), frameTimeMs);
-    showDistanceState(classifyDistance(figureDistanceCm), figureDistanceCm,
-                      figureProgress);
+    const float targetProgress =
+        currentState == DISTANCE_UNHURRIED
+            ? 0.5f + 0.5f * sinf(frameTimeMs / 3000.0f)
+            : 0.5f;
+    approachFigure(targetProgress, frameTimeMs);
+    showSensorState(currentState, figureProgress);
     lastFrameMs = frameTimeMs;
   }
   delay(1);
