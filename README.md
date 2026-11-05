@@ -79,3 +79,14 @@ David Laredo, Henry Tolar
 motion sensor
 
 https://dlaredo29-creator.github.io/team-repository-setup/
+
+## State Table 
+
+
+
+
+| Name | Readings at the edge | LINE | GAP | Hold | Visitor learns it by | Piece does | For them / To them | Owner |
+|---|---|---|---|---|---|---|---|---|
+| Passing | cm | 80 | 5 | 6 s | OLED saying state during animation | D6: animation plays | For them: gives entertainment. To them: it names your speed. | @leo |
+| Rushing | cm | 80 | 5 | 2 s | Oled giving an allert | D6: alarm/ alarm animation plays | For them: rewards engagment. To them: yells at you when doing that thing. | @leo |
+| Nobody | cm | 80 | 5 | 5 s | screen going black indicates nobody | D6: nothing | For them: nothing. To them: turns off project. | @leo |
