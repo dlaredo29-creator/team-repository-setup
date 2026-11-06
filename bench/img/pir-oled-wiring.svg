@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title description">
+  <title id="title">Arduino Nano wiring for a PIR motion sensor and OLED</title>
+  <desc id="description">A labelled wiring diagram. PIR VCC connects to Nano 5V, PIR OUT to D10, and PIR GND to GND. OLED VCC connects to 5V, GND to GND, SDA to A4, and SCL to A5.</desc>
+  <defs>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172033; }
+      .small { font-size: 16px; }
+      .label { font-size: 18px; font-weight: 700; }
+      .pin { font-size: 16px; font-weight: 700; }
+      .wire { fill: none; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+  <rect width="1200" height="760" fill="#f3f6fb"/>
+  <text x="600" y="52" text-anchor="middle" font-size="30" font-weight="700">PIR motion sensor + OLED → Arduino Nano</text>
+  <text x="600" y="82" text-anchor="middle" class="small" fill="#526078">Wire by the pin names printed on your modules; physical pin order can vary.</text>
+
+  <!-- PIR module -->
+  <rect x="55" y="190" width="285" height="270" rx="22" fill="#d9f3e7" stroke="#16845b" stroke-width="3"/>
+  <circle cx="197" cy="292" r="72" fill="#f8ffff" stroke="#16845b" stroke-width="4"/>
+  <circle cx="197" cy="292" r="52" fill="#e9f8f2" stroke="#9bcdb8" stroke-width="2"/>
+  <path d="M155 292 Q197 244 239 292 Q197 340 155 292Z" fill="none" stroke="#16845b" stroke-width="3"/>
+  <text x="197" y="214" text-anchor="middle" class="label">PIR MOTION SENSOR</text>
+  <text x="197" y="389" text-anchor="middle" class="small">3-pin module</text>
+  <text x="197" y="415" text-anchor="middle" class="small">Use VCC / OUT / GND labels</text>
+  <circle cx="340" cy="245" r="8" fill="#dc2626"/>
+  <circle cx="340" cy="325" r="8" fill="#2563eb"/>
+  <circle cx="340" cy="405" r="8" fill="#111827"/>
+  <text x="305" y="251" text-anchor="end" class="pin">VCC</text>
+  <text x="305" y="331" text-anchor="end" class="pin">OUT</text>
+  <text x="305" y="411" text-anchor="end" class="pin">GND</text>
+
+  <!-- OLED module -->
+  <rect x="860" y="190" width="285" height="270" rx="22" fill="#e1e9ff" stroke="#4164c5" stroke-width="3"/>
+  <rect x="940" y="242" width="170" height="116" rx="8" fill="#152a4a" stroke="#4164c5" stroke-width="3"/>
+  <text x="1025" y="290" text-anchor="middle" fill="#a8f0d1" font-size="20" font-weight="700">MOTION</text>
+  <text x="1025" y="324" text-anchor="middle" fill="#a8f0d1" font-size="17">OLED display</text>
+  <text x="1002" y="214" text-anchor="middle" class="label">I²C OLED (4-pin)</text>
+  <circle cx="860" cy="245" r="8" fill="#dc2626"/>
+  <circle cx="860" cy="299" r="8" fill="#111827"/>
+  <circle cx="860" cy="353" r="8" fill="#d97706"/>
+  <circle cx="860" cy="407" r="8" fill="#7c3aed"/>
+  <text x="895" y="251" class="pin">VCC</text>
+  <text x="895" y="305" class="pin">GND</text>
+  <text x="895" y="359" class="pin">SCL</text>
+  <text x="895" y="413" class="pin">SDA</text>
+  <text x="1002" y="429" text-anchor="middle" class="small">Check your OLED's printed labels</text>
+
+  <!-- Arduino Nano -->
+  <rect x="465" y="145" width="270" height="400" rx="20" fill="#e8f0f3" stroke="#34495e" stroke-width="4"/>
+  <rect x="514" y="205" width="172" height="100" rx="9" fill="#c7d4da" stroke="#526078" stroke-width="2"/>
+  <text x="600" y="246" text-anchor="middle" font-size="24" font-weight="700">ARDUINO</text>
+  <text x="600" y="277" text-anchor="middle" font-size="23" font-weight="700">NANO</text>
+  <rect x="548" y="155" width="104" height="31" rx="5" fill="#d6b98b" stroke="#7f6845" stroke-width="2"/>
+  <text x="600" y="177" text-anchor="middle" font-size="14" font-weight="700">USB → computer</text>
+  <text x="600" y="350" text-anchor="middle" class="small">Connect wires to the pin names</text>
+  <text x="600" y="374" text-anchor="middle" class="small">along the Nano's edges</text>
+  <circle cx="465" cy="245" r="9" fill="#dc2626"/>
+  <circle cx="465" cy="325" r="9" fill="#2563eb"/>
+  <circle cx="465" cy="405" r="9" fill="#111827"/>
+  <text x="490" y="251" class="pin">5V</text>
+  <text x="490" y="331" class="pin">D10</text>
+  <text x="490" y="411" class="pin">GND</text>
+  <circle cx="735" cy="245" r="9" fill="#dc2626"/>
+  <circle cx="735" cy="299" r="9" fill="#111827"/>
+  <circle cx="735" cy="353" r="9" fill="#d97706"/>
+  <circle cx="735" cy="407" r="9" fill="#7c3aed"/>
+  <text x="710" y="251" text-anchor="end" class="pin">5V</text>
+  <text x="710" y="305" text-anchor="end" class="pin">GND</text>
+  <text x="710" y="359" text-anchor="end" class="pin">A5 / SCL</text>
+  <text x="710" y="413" text-anchor="end" class="pin">A4 / SDA</text>
+
+  <!-- Wires, deliberately routed around the board -->
+  <path class="wire" stroke="#dc2626" d="M348 245 H456"/>
+  <path class="wire" stroke="#2563eb" d="M348 325 H456"/>
+  <path class="wire" stroke="#111827" d="M348 405 H456"/>
+  <path class="wire" stroke="#dc2626" d="M744 245 H852"/>
+  <path class="wire" stroke="#111827" d="M744 299 H852"/>
+  <path class="wire" stroke="#d97706" d="M744 353 H852"/>
+  <path class="wire" stroke="#7c3aed" d="M744 407 H852"/>
+
+  <!-- Bottom connection key -->
+  <rect x="55" y="585" width="1090" height="120" rx="18" fill="#ffffff" stroke="#d8dfeb" stroke-width="2"/>
+  <text x="82" y="620" class="label">Connections</text>
+  <text x="82" y="652" class="small"><tspan fill="#dc2626" font-weight="700">RED</tspan> PIR VCC → 5V; OLED VCC → 5V</text>
+  <text x="82" y="681" class="small"><tspan fill="#2563eb" font-weight="700">BLUE</tspan> PIR OUT → D10</text>
+  <text x="505" y="652" class="small"><tspan fill="#111827" font-weight="700">BLACK</tspan> Both GND pins → Nano GND (shared ground)</text>
+  <text x="505" y="681" class="small"><tspan fill="#d97706" font-weight="700">ORANGE</tspan> OLED SCL → A5</text>
+  <text x="852" y="681" class="small"><tspan fill="#7c3aed" font-weight="700">PURPLE</tspan> OLED SDA → A4</text>
+</svg>
