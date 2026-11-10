@@ -70,3 +70,6 @@ David Laredo, Henry Tolar
 motion sensor
 
 https://dlaredo29-creator.github.io/team-repository-setup/
+
+## Readings
+| Unhurried | 5.8, 6.1, 6.0 seconds | Keep sketch value | Keep sketch value | 6 s | Slow animation on OLED | OLED displays slow animation | For them: It gives feedback about movement. To them: It labels their movement as unhurried. | @dlaredo29-creator|
