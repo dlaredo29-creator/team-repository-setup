@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <Wire.h>
-#include <math.h>
 #include "pir_state.h"
 
 U8G2_SSD1306_128X64_NONAME_1_HW_I2C oled(U8G2_R0, U8X8_PIN_NONE);
@@ -12,8 +11,11 @@ const unsigned long FRAME_INTERVAL_MS = 33;
 PirStateTracker stateTracker;
 PirState currentState = PIR_NOBODY;
 unsigned long lastFrameMs = 0;
+unsigned long motionSinceMs = 0;
+bool trackingMotion = false;
 
-void showPirState(PirState state, unsigned long nowMs) {
+void showPirState(PirState state, bool motionDetected,
+                  unsigned long motionHeldMs) {
   const char *activityLabel;
   const char *paceLabel;
   switch (state) {
@@ -27,31 +29,21 @@ void showPirState(PirState state, unsigned long nowMs) {
       paceLabel = "DETECTING";
       break;
   }
-  activityLabel = "MOTION DETECTED";
+  activityLabel = motionDetected ? "MOTION DETECTED" : "MOTION ENDED";
 
   oled.firstPage();
   do {
     oled.setFont(u8g2_font_6x12_tr);
     const int activityWidth = oled.getStrWidth(activityLabel);
     oled.drawStr((128 - activityWidth) / 2, 12, activityLabel);
+
+    char reading[24];
+    snprintf(reading, sizeof(reading), "PIR: %d  TIME: %lus",
+             motionDetected ? 1 : 0, motionHeldMs / 1000UL);
+    oled.drawStr((128 - oled.getStrWidth(reading)) / 2, 38, reading);
+
     const int paceWidth = oled.getStrWidth(paceLabel);
     oled.drawStr((128 - paceWidth) / 2, 63, paceLabel);
-
-    if (state == PIR_RUSHING) {
-      oled.drawFrame(52, 20, 24, 25);
-      oled.drawVLine(64, 25, 12);
-      oled.drawDisc(64, 41, 1);
-    } else {
-      const int y = state == PIR_UNHURRIED
-                        ? 34 + (int)(2.0f * sinf(nowMs / 1200.0f))
-                        : 34;
-      oled.drawCircle(64, y - 12, 4);
-      oled.drawVLine(64, y - 7, 13);
-      oled.drawLine(64, y - 2, 54, y + 4);
-      oled.drawLine(64, y - 2, 74, y + 4);
-      oled.drawLine(64, y + 6, 58, y + 17);
-      oled.drawLine(64, y + 6, 70, y + 17);
-    }
   } while (oled.nextPage());
 }
 
@@ -83,8 +75,18 @@ void setup() {
 
 void loop() {
   const unsigned long nowMs = millis();
-  const PirState nextState =
-      stateTracker.update(nowMs, digitalRead(PIR_PIN) == HIGH);
+  const bool motionDetected = digitalRead(PIR_PIN) == HIGH;
+  if (motionDetected && !trackingMotion) {
+    trackingMotion = true;
+    motionSinceMs = nowMs;
+  } else if (!motionDetected) {
+    if (trackingMotion) {
+      motionSinceMs = nowMs - motionSinceMs;
+    }
+    trackingMotion = false;
+  }
+
+  const PirState nextState = stateTracker.update(nowMs, motionDetected);
 
   if (nextState != currentState) {
     currentState = nextState;
@@ -94,7 +96,9 @@ void loop() {
 
   if (currentState != PIR_NOBODY &&
       nowMs - lastFrameMs >= FRAME_INTERVAL_MS) {
-    showPirState(currentState, nowMs);
+    const unsigned long motionHeldMs =
+        trackingMotion ? nowMs - motionSinceMs : motionSinceMs;
+    showPirState(currentState, motionDetected, motionHeldMs);
     lastFrameMs = nowMs;
   }
 }
