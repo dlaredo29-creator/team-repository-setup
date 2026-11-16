@@ -1,21 +1,32 @@
 #include <cassert>
+#include <limits.h>
 #include "distance_state.h"
 
 int main() {
-  assert(classifyDistance(0.0f) == DISTANCE_CLOSE);
-  assert(classifyDistance(7.5f) == DISTANCE_CLOSE);
-  assert(classifyDistance(7.6f) == DISTANCE_DETECTED);
-  assert(classifyDistance(17.0f) == DISTANCE_DETECTED);
-  assert(classifyDistance(30.0f) == DISTANCE_DETECTED);
-  assert(classifyDistance(30.1f) == DISTANCE_NOBODY);
-  assert(classifyDistance(400.0f) == DISTANCE_NOBODY);
+  DistanceStateTracker tracker;
+  assert(tracker.update(0, 100.0f) == DISTANCE_DETECTING);
+  assert(tracker.update(1999, 100.0f) == DISTANCE_DETECTING);
+  assert(tracker.update(2000, 100.0f) == DISTANCE_RUSHING);
+  assert(tracker.update(5999, 100.0f) == DISTANCE_RUSHING);
+  assert(tracker.update(6000, 100.0f) == DISTANCE_UNHURRIED);
 
-  assert(getUpProgress(400.0f) == 0.0f);
-  assert(getUpProgress(30.1f) == 0.0f);
-  assert(getUpProgress(30.0f) == 0.5f);
-  assert(getUpProgress(18.75f) == 0.5f);
-  assert(getUpProgress(7.6f) == 0.5f);
-  assert(getUpProgress(7.5f) == 1.0f);
-  assert(getUpProgress(7.4f) == 1.0f);
-  assert(getUpProgress(0.0f) == 1.0f);
+  assert(tracker.update(6001, 130.0f) == DISTANCE_UNHURRIED);
+  assert(tracker.update(6002, 130.1f) == DISTANCE_UNHURRIED);
+  assert(tracker.update(7000, 100.0f) == DISTANCE_UNHURRIED);
+  assert(tracker.update(7001, 130.1f) == DISTANCE_UNHURRIED);
+  assert(tracker.update(12000, 400.0f) == DISTANCE_UNHURRIED);
+  assert(tracker.update(12001, 400.0f) == DISTANCE_NOBODY);
+
+  assert(tracker.update(11003, 100.0f) == DISTANCE_DETECTING);
+  assert(tracker.update(13003, 100.0f) == DISTANCE_RUSHING);
+  assert(tracker.update(15003, 400.0f) == DISTANCE_RUSHING);
+  assert(tracker.update(20003, 400.0f) == DISTANCE_NOBODY);
+
+  DistanceStateTracker wraparoundTracker;
+  const unsigned long nearWrap = ULONG_MAX - 1000UL;
+  assert(wraparoundTracker.update(nearWrap, 100.0f) == DISTANCE_DETECTING);
+  assert(wraparoundTracker.update(nearWrap + 2000UL, 100.0f) ==
+         DISTANCE_RUSHING);
+  assert(wraparoundTracker.update(nearWrap + 6000UL, 100.0f) ==
+         DISTANCE_UNHURRIED);
 }
