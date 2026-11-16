@@ -1,0 +1,20 @@
+{
+  "files.exclude": {
+    "**/.git": true,
+    "**/.pio": true,
+    "**/.vscode": true,
+    "**/.DS_Store": true
+  },
+  "search.exclude": {
+    "**/.git": true,
+    "**/.pio": true
+  },
+  "explorer.compactFolders": false,
+  "explorer.sortOrder": "type",
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.cpp": "*.h, *.ino, *.ini",
+    "*.ino": "*.h, *.cpp",
+    "*.h": "*.cpp, *.ino"
+  }
+}
