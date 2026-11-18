@@ -66,6 +66,14 @@ Flash `bench/bench.ino` for the sensor alone. Open `bench.html` on localhost in 
 
 Every sensor here prints a number; the meaning is yours. A `near` of 0.9 is a distance, never a feeling.
 
+### PIR motion sensor checks
+
+The PIR monitor reads the module's digital `OUT` on Nano D10. Its Serial Monitor output is `1 MOTION (HIGH)` or `0 clear (LOW)`; with an I2C OLED connected, the same state appears on screen. Allow about 30 seconds after power-up for the monitor to settle.
+
+A PIR detects changes in infrared heat, not a hand's distance. Test by walking across its view, with the sensor aimed at the area; a stationary person or a hand directly over the lens may not trigger it reliably. Check the module labels and wiring (`VCC` to 5V, `OUT` to D10, `GND` to GND). If it is an HC-SR501, adjust its sensitivity/range trimmer gradually; the other trimmer usually changes how long motion stays HIGH. Keep it away from direct sun, heaters, and moving warm air. Other PIR models may have different adjustment controls.
+
+The diagram is [here](img/pir-oled-wiring.svg).
+
 ## Advanced sensing
 
 Mr. Reasy's own bench sensors, lent to pairs whose simple sensor already works in the browser. Ask him for one; they live on his bench, not the shelf. Several need a 3.3 V board with more memory than the Nano: the Nano 33 IoT (north racks, a few) or an ESP32-S3 from his bench.
@@ -81,4 +89,3 @@ Mr. Reasy's own bench sensors, lent to pairs whose simple sensor already works i
 | Load cell, 10 kg or 15 kg bar | `loaded`, `weight` | Needs an amplifier board (HX711 or NAU7802) | Nano | Moderate once the amplifier is in hand. Ask Mr. Reasy whether one is free before you plan on it. |
 
 Same rule as the shelf: the sensor gives a number and your State Table gives it a meaning. A radar `count` of 2 is two bodies in range, not a crowd that wants anything.
-

@@ -82,7 +82,7 @@ https://dlaredo29-creator.github.io/team-repository-setup/
 
 ## State Table
 
-| Name | Readings at the edge | LINE | GAP | Hold | Visitor learns it by | Piece does | For them / To them | Owner |
+| Motions | Readings at the edge | LINE | GAP | Hold | Visitor learns it by | Piece does | For them / To them | Owner |
 |---|---|---|---|---|---|---|---|---|
 | Unhurried | 5.8, 6.1, 6.0 seconds | Keep sketch value | Keep sketch value | 6 s | OLED displays slow animation | OLED displays slow animation | For them: It gives feedback about movement. To them: It labels their movement as unhurried. | @dlaredo29-creator |
 | Rushing | 1, 1, 1 | 1 | 1 | 2 s | OLED giving an alert | D6: alarm/ alarm animation plays | For them: rewards engagement. To them: yells at you when doing that thing. | @dlaredo29-creator |
