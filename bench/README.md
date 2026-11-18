@@ -12,6 +12,10 @@ The kits come apart, so building the circuit is part of your work.
 2. Two sensors on the one Nano, one per partner. Wire each one and check it in the Arduino IDE's Serial Monitor at 115200 before the browser sees it.
 3. Add your sensor's number to the line `bench.ino` prints (`Serial.print(" light "); Serial.print(analogRead(A0));`), then its function in `SIGNALS` in `sense-serial.js`, then its name in `bench/table-bench.js`.
 
+### Quick PIR test
+
+To check a PIR motion sensor by itself, open `pir_test/pir_test.ino` in the Arduino IDE and upload it to the Nano. Connect sensor **VCC to 5V**, **GND to GND**, and **OUT to D10**. Open the Serial Monitor at **115200 baud** and keep the area clear while it warms up for 60 seconds. It arms after the output stays LOW for 2 seconds, then prints `MOTION DETECTED` or `No motion` when the signal changes. The Nano's built-in LED follows the sensor output. If it keeps saying the output is HIGH after warm-up, check the wiring and let the sensor's output return LOW before expecting new detections.
+
 ## The reference build
 
 This one works, end to end: a Nano and an HC-SR04 on a breadboard, with an optional 0.96 in screen, read by `bench.html` in Chrome. Build yours to match first, then change it.
