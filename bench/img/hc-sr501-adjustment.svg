@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="640" viewBox="0 0 1080 640" role="img" aria-labelledby="title description">
+  <title id="title">HC-SR501 sensitivity and time adjustments</title>
+  <desc id="description">Find the trimmer labeled TIME and turn it gently counterclockwise to shorten the motion output hold time. Turn the trimmer labeled SENS clockwise to increase detection range. Board layouts vary, so use the printed labels rather than assumed positions.</desc>
+  <defs>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 18px; fill: #526078; }
+      .heading { font-size: 22px; font-weight: 700; }
+      .body { font-size: 18px; }
+      .small { font-size: 15px; fill: #526078; }
+      .label { font-size: 16px; font-weight: 700; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1 L10 6 L1 11 Z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1 L10 6 L1 11 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect width="1080" height="640" fill="#f3f6fb"/>
+  <text x="540" y="52" text-anchor="middle" class="title">HC-SR501: which adjustment and which way?</text>
+  <text x="540" y="82" text-anchor="middle" class="subtitle">Follow the labels printed on your board. The physical positions can vary between versions.</text>
+
+  <rect x="38" y="118" width="1004" height="174" rx="18" fill="#e1f3e9" stroke="#16845b" stroke-width="2"/>
+  <text x="64" y="154" class="heading">Find the trimmers</text>
+  <rect x="78" y="174" width="266" height="91" rx="14" fill="#23835e" stroke="#145c40" stroke-width="3"/>
+  <circle cx="211" cy="199" r="20" fill="#e9f8f2" stroke="#145c40" stroke-width="3"/>
+  <path d="M198 199 Q211 184 224 199 Q211 214 198 199Z" fill="none" stroke="#16845b" stroke-width="2"/>
+  <text x="211" y="244" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">PIR LENS</text>
+  <rect x="103" y="212" width="47" height="34" rx="5" fill="#f5c542" stroke="#805d13" stroke-width="2"/>
+  <circle cx="126" cy="229" r="12" fill="#f9dda0" stroke="#805d13" stroke-width="2"/>
+  <path d="M118 229 H134" stroke="#805d13" stroke-width="2"/>
+  <text x="126" y="260" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">SENS</text>
+  <rect x="272" y="212" width="47" height="34" rx="5" fill="#f5c542" stroke="#805d13" stroke-width="2"/>
+  <circle cx="295" cy="229" r="12" fill="#f9dda0" stroke="#805d13" stroke-width="2"/>
+  <path d="M287 229 H303" stroke="#805d13" stroke-width="2"/>
+  <text x="295" y="260" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">TIME</text>
+  <text x="380" y="203" class="body">The diagram is illustrative, not a map of exact positions.</text>
+  <text x="380" y="235" class="body">Read the tiny PCB labels beside the two adjustment screws.</text>
+  <text x="380" y="267" class="body" font-weight="700">For a shorter motion signal, adjust TIME — not SENS.</text>
+
+  <rect x="38" y="318" width="486" height="246" rx="18" fill="#ffffff" stroke="#d8dfeb" stroke-width="2"/>
+  <text x="68" y="358" class="heading">TIME / DELAY</text>
+  <text x="68" y="390" class="body">Turn counterclockwise to shorten the HIGH hold.</text>
+  <circle cx="154" cy="474" r="44" fill="#f9dda0" stroke="#805d13" stroke-width="3"/>
+  <path d="M126 474 H182" stroke="#805d13" stroke-width="6" stroke-linecap="round"/>
+  <path d="M197 454 A57 57 0 0 1 124 522" fill="none" stroke="#dc2626" stroke-width="7" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <text x="246" y="463" class="heading" fill="#b91c1c">COUNTERCLOCKWISE</text>
+  <text x="246" y="495" class="body">toward minimum</text>
+  <text x="68" y="540" class="small">Adjust gently; clones vary, so verify the result in raw test mode.</text>
+
+  <rect x="556" y="318" width="486" height="246" rx="18" fill="#ffffff" stroke="#d8dfeb" stroke-width="2"/>
+  <text x="586" y="358" class="heading">SENS / RANGE</text>
+  <text x="586" y="390" class="body">Turn clockwise to increase detection range.</text>
+  <circle cx="672" cy="474" r="44" fill="#f9dda0" stroke="#805d13" stroke-width="3"/>
+  <path d="M644 474 H700" stroke="#805d13" stroke-width="6" stroke-linecap="round"/>
+  <path d="M645 454 A57 57 0 0 0 718 522" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round" marker-end="url(#arrowBlue)"/>
+  <text x="764" y="463" class="heading" fill="#1d4ed8">CLOCKWISE</text>
+  <text x="764" y="495" class="body">increase range</text>
+  <text x="586" y="540" class="small">Turn only if you want to change how far away it detects motion.</text>
+
+  <text x="540" y="604" text-anchor="middle" class="small">Power off before adjusting. Use a small insulated screwdriver and never force the trimmer.</text>
+</svg>

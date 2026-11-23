@@ -20,6 +20,10 @@ int main() {
   assert(tracker.update(13102, true) == PIR_RUSHING);
   assert(tracker.update(16101, true) == PIR_RUSHING);
   assert(tracker.update(16102, true) == PIR_UNHURRIED);
+  tracker.reset();
+  assert(tracker.update(17000, true) == PIR_DETECTING);
+  assert(tracker.update(18999, true) == PIR_DETECTING);
+  assert(tracker.update(19000, true) == PIR_RUSHING);
 
   PirStateTracker wraparoundTracker;
   const unsigned long nearWrap = ULONG_MAX - 1000UL;
@@ -31,12 +35,14 @@ int main() {
 
   PirStateTracker shortMotionTracker;
   assert(shortMotionTracker.update(100, true) == PIR_DETECTING);
-  assert(shortMotionTracker.update(500, false) == PIR_NOBODY);
+  assert(shortMotionTracker.update(500, false) == PIR_DETECTING);
+  assert(shortMotionTracker.update(5499, false) == PIR_DETECTING);
+  assert(shortMotionTracker.update(5500, false) == PIR_NOBODY);
 
   PirStateTracker rushingHoldTracker;
   assert(rushingHoldTracker.update(0, true) == PIR_DETECTING);
   assert(rushingHoldTracker.update(2000, true) == PIR_RUSHING);
   assert(rushingHoldTracker.update(2100, false) == PIR_RUSHING);
-  assert(rushingHoldTracker.update(4099, false) == PIR_RUSHING);
-  assert(rushingHoldTracker.update(4100, false) == PIR_NOBODY);
+  assert(rushingHoldTracker.update(7099, false) == PIR_RUSHING);
+  assert(rushingHoldTracker.update(7100, false) == PIR_NOBODY);
 }

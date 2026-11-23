@@ -72,7 +72,11 @@ Every sensor here prints a number; the meaning is yours. A `near` of 0.9 is a di
 
 The PIR monitor reads the module's digital `OUT` on Nano D10. Its Serial Monitor output is `1 MOTION (HIGH)` or `0 clear (LOW)`; with an I2C OLED connected, the same state appears on screen. Allow about 30 seconds after power-up for the monitor to settle.
 
+For a sensor monitor, open Serial Monitor at 115200 baud, set the line ending to Newline, and send `test`. The OLED shows the raw `1`/`0` reading, its `MOTION`/`CLEAR` meaning, and elapsed time. Serial Monitor prints a CSV-style log (`elapsed,raw,status`) once per second and immediately when the sensor output changes. This PIR only reports motion detected or clear; it cannot identify the type of movement. Send `un test` or `normal` to return to the motion-state display. For maximum sensitivity, raise the sensor module's sensitivity/range adjustment; firmware cannot increase sensitivity beyond what the module outputs.
+
 A PIR detects changes in infrared heat, not a hand's distance. Test by walking across its view, with the sensor aimed at the area; a stationary person or a hand directly over the lens may not trigger it reliably. Check the module labels and wiring (`VCC` to 5V, `OUT` to D10, `GND` to GND). If it is an HC-SR501, adjust its sensitivity/range trimmer gradually; the other trimmer usually changes how long motion stays HIGH. Keep it away from direct sun, heaters, and moving warm air. Other PIR models may have different adjustment controls.
+
+![HC-SR501 TIME and SENS trimmer identification and adjustment directions.](bench/img/hc-sr501-adjustment.svg)
 
 The diagram is [here](img/pir-oled-wiring.svg).
 
@@ -107,7 +111,7 @@ Same rule as the shelf: the sensor gives a number and your State Table gives it 
 |---|---|---|---|---|---|---|---|---|
 | Unhurried | 5.8, 6.1, 6.0 seconds | Keep sketch value | Keep sketch value | 6 s | OLED displays slow animation | OLED displays slow animation | For them: It gives feedback about movement. To them: It labels their movement as unhurried. | @dlaredo29-creator |
 | Rushing | 1, 1, 1 | 1 | 1 | 2 s | OLED giving an alert | D6: alarm/ alarm animation plays | For them: rewards engagement. To them: yells at you when doing that thing. | @dlaredo29-creator |
-| Nobody | 0, 0, 0 | 0 | 0 | 5 s | Screen going black indicates nobody | D6: nothing | For them: nothing. To them: turns off project. | @dlaredo29-creator |
+| Nobody | 0, 0, 0 | 0 | 0 | 5 s | Screen going black indicates nobody | D6: nothing | For them: nothing. To them: turns off project. | @htolar |
 
 ## Credits 
 David Laredo, Henry Tolar 
