@@ -1,77 +1,117 @@
-# Sensor Layer starter
+# The bench track
 
-Computer Coding Studio, fall 2026. The camera, the model, one worked signal and a fake sensor, so your pair starts from a piece that already runs.
+[System charter](team-repository-setup/SYSTEM_CHARTER.md)
 
-**Live:** https://flyinthelyceum.github.io/sensor-layer-starter/ (click Start the camera; press D, B, V)
+An Arduino Nano and two sensors in place of the camera. The bench swaps the sensor and nothing else: `piece.js` and `fake-sense.js` stay exactly as they are, and your State Table works the same way. Bench pairs open `bench.html` instead of `index.html`, and write their rows in `bench/table-bench.js` instead of `table.js`. The steps are in the main README, under **Bench pairs**.
 
-## Make it yours
+**Simple sensor first.** Every pair builds with sensors from the shelf below, the simple tier, and gets them working in the browser before anything else. An advanced sensor is a second sensor, added after the simple one works, never instead of it.
 
-1. Click **Use this template**, then **Create a new repository**, under one partner's account. Add the other partner as a collaborator (Settings, Collaborators).
-2. Both partners clone it, open it in VS Code, and run it with a local server. Live Server works, or in the terminal: `python3 -m http.server`, then open `http://localhost:8000`. Opening `index.html` straight from the Finder will not reach the camera.
-3. Turn on GitHub Pages: Settings, Pages, branch `main`, folder `/ (root)`. That address is the live URL you submit.
+## Building it
 
-## Project structure
+The kits come apart, so building the circuit is part of your work.
 
-This repo is organized by job instead of by file type:
+1. A Nano, a breadboard and jumpers from the north racks in the Innovation Commons. If the Nano's header pins aren't soldered yet, that comes first. Ask Mr. Reasy before you heat an iron.
+2. Two sensors on the one Nano, one per partner. Wire each one and check it in the Arduino IDE's Serial Monitor at 115200 before the browser sees it.
+3. Add your sensor's number to the line `bench.ino` prints (`Serial.print(" light "); Serial.print(analogRead(A0));`), then its function in `SIGNALS` in `sense-serial.js`, then its name in `bench/table-bench.js`.
 
-- `web/` — browser prototype and state table
-- `bench/` — Arduino bench build, wiring notes, and browser serial demo
-- `firmware/` — PlatformIO firmware for the team project
-- `BREAK_LOG.md` — project notes and fixes
+## The reference build
 
-## The files
+This one works, end to end: a Nano and an HC-SR04 on a breadboard, with an optional 0.96 in screen, read by `bench.html` in Chrome. Build yours to match first, then change it.
 
-| File | Job | Who edits it |
+![The reference build: an Arduino Nano, an ultrasonic distance sensor and a 0.96 in OLED screen on a breadboard. The screen reads NEAR, 23.6 cm, with a sonar fan and a history trace.](img/build-overview.jpg)
+
+| Part | Pin | Nano pin |
 |---|---|---|
-| `web/table.js` | Your State Table, row for row: the signals, the states, the rules, the holds | both of you, first |
-| `web/sense.js` | Reads the camera, turns readings into signals, applies the table, writes `window.sense` | each partner, your own signal |
-| `web/piece.js` | Reads `window.sense` every frame and answers | both of you |
-| `web/fake-sense.js` | Writes the same object with no camera: number keys set the state, the mouse sets the signals | only if your signal names change |
-| `web/index.html` | Loads them in order | rarely |
+| HC-SR04 | VCC | 5V |
+| HC-SR04 | GND | GND |
+| HC-SR04 | TRIG | D9 |
+| HC-SR04 | ECHO | D10 |
+| OLED (optional) | VCC | 5V |
+| OLED (optional) | GND | GND |
+| OLED (optional) | SDA | A4 |
+| OLED (optional) | SCL | A5 |
 
-## The object
+![The Nano close up, USB end at the top. Two wires on the right side at D9 and D10 go to the sensor; on the left side, wires at A4 and A5 go to the screen, and 5V and GND feed both.](img/nano-pins.jpg)
 
-```js
-window.sense = {
-  state: 'here',                          // one word from your State Table
-  signals: { present: 0.98, open: 0.02 }, // each a number from 0 to 1
-  since: 184203.5                         // performance.now() when this state began
-};
-```
+*The Nano's pins: D9 and D10 on the right go to the sensor; A4, A5, 5V and GND on the left.*
 
-`piece.js` reads this and nothing else. It never touches the camera. That is why the piece keeps running on `fake-sense.js` when no camera is there, and why a scene you build in November can run off the sensor you build now.
+![A US-025A ultrasonic sensor, front view, pins labelled VCC, Trig, Echo, GND along the bottom edge.](img/sensor-pins.jpg)
 
-## Adding your signal
+*Ours is a US-025A, a clone of the HC-SR04. Same four pins in the same order (VCC, Trig, Echo, GND), same wiring, same sketch. Either board works.*
 
-1. Add its name to `signals` in `table.js`.
-2. Add a function with the same name to `SIGNALS` in `sense.js`. It gets one frame's result and returns a number from 0 to 1. There are two patterns in the comments there: one of the 52 named scores from the lab, or geometry from the 478 points.
-3. Use it in a rule in `table.js`. Press **D** to watch the number while you set the threshold. Thresholds that move go in your break log.
+Flash `bench/bench.ino` for the sensor alone. Open `bench.html` on localhost in Chrome, click **Connect the Arduino**, and pick the board. Press **D**: a hand at about 40 cm or closer reads `close`, further away reads `here`, and an empty room reads `nobody` after two seconds.
 
-## Keys
+**The lag is the table, not the wire.** Each row's hold (0.5, 1 and 2 seconds in `bench/table-bench.js`) is how long a rule has to stay true before the state changes, and the readings are smoothed so one bad echo doesn't count. Short holds feel instant and flicker; long holds feel calm and slow. Choosing them is part of your table.
 
-- **D**: the object `piece.js` reads, live
-- **B**: all 52 named scores, to find the one you measured in the Make a Face lab
-- **V**: the camera, small, in the corner
-- **1, 2, 3 …** and the **mouse**: drive the fake sensor before the camera starts
+**If the upload fails** with `not in sync` or `programmer is not responding`, the Nano has the old bootloader, which is common on clone boards. In the Arduino IDE choose **Tools → Processor → ATmega328P (Old Bootloader)** and upload again (in `arduino-cli`, the board is `arduino:avr:nano:cpu=atmega328old`). After a failed upload, unplug the Nano and plug it back in before the next try, because the port can stay stuck.
 
-## When Start does nothing useful
+### The screen (optional)
 
-If the readout says the face library did not load, the school network is blocking `cdn.jsdelivr.net`. Press **D** and keep going on the fake sensor: the piece reads the same object either way. A new state you add to `table.js` gets a bright colour of its own in `piece.js` until you give it one.
+`bench/oled_demo/oled_demo.ino` is `bench.ino` plus a readout on a 0.96 in SSD1306 screen (128 x 64, I2C): a state badge, the distance in big digits, a smoothly tilting thumb, original cartoon action marks, and a scrolling trace. CLOSE (<6 cm) is thumbs-up, MEDIUM (6–30 cm) tilts across the range, and EMPTY (>30 cm or no echo) is thumbs-down. It prints the same lines over USB, so `bench.html` works with it unchanged. It needs the **U8g2** library (Arduino IDE → Library Manager). On the two-colour screens the top strip is yellow and holds the status.
 
-## Bench pairs: an Arduino instead of the camera
+![Three photos of the screen side by side: EMPTY reading 400 cm with no echo, HERE at 51.5 cm, NEAR at 7.2 cm with a large dot on the sonar.](img/screen-states.jpg)
 
-The bench track swaps the sense layer and nothing else. `piece.js` and `fake-sense.js` stay exactly as they are. The wiring, a photo of a working build and upload fixes are in `bench/README.md`.
+*These photos show the original sonar display and do not reflect the current sketch's thresholds.* The screen's badge thresholds are for the screen only; your real State Table still lives in the browser. It's an extra for after the sensor works, never instead of it.
 
-1. Build the circuit and flash `bench/bench.ino` from the Arduino IDE. It prints one line per reading, like `cm 42.5`. Check it in the IDE's Serial Monitor at 115200, then **close the Serial Monitor**: only one program can hold the port.
-2. Open **`bench.html`** instead of `index.html`, on localhost in **Chrome**. It loads the bench table and the serial sense layer; nothing to edit.
-3. Click **Connect the Arduino** and pick the board. Press **D** to see the raw line and your signals.
-4. Your State Table lives in **`bench/table-bench.js`** (same format as `table.js`). Your signal is a function in `SIGNALS` in `bench/sense-serial.js`: it gets the latest reading (`{ cm: 42.5 }`) and returns 0 to 1. Add the sensor to the sketch's printed line, then its function, then its name in `bench/table-bench.js`.
+## What's on the shelf
 
-## What stays in the browser
+| Sensor | A signal it can give | Watch for |
+|---|---|---|
+| HC-SR04 ultrasonic | `near`, `present` | The worked example in `bench.ino`. It reports the nearest thing in a cone about 30° wide, so flat on a desk it hears the desk: aim it up or off the edge. Soft clothing swallows the echo. |
+| PIR motion | `moving` | On or off, and it holds itself on for a few seconds. Someone standing still disappears. |
+| Photoresistor | `shade` | Needs a 10k resistor beside it. The room's light changes through the day. |
+| TCRT5000 reflective IR | `close` | A hand within a few centimetres, nothing further. |
+| Sound sensor (KY-037/038) | `loud` | Read its analog pin (A0), which gives a level. The digital pin only says over or under its dial. |
+| TTP223 touch pad | `touch` | Works through a few millimetres of paper or plastic. |
+| Piezo disc | `knock` | It spikes for an instant on a tap, so give its state a hold. |
+| Tilt switch | `tilted` | For a piece someone picks up. |
 
-Nothing saves a frame or a landmark list. The model downloads once when you click Start; after that the Network panel stays quiet. Keep it that way: no `localStorage` of readings, no uploads, no screenshots of the camera image in the repo. Screenshots for your break log show the piece or the D readout.
+Every sensor here prints a number; the meaning is yours. A `near` of 0.9 is a distance, never a feeling.
 
-The instrument is MediaPipe Face Landmarker, pinned to version 1.1.1, the same one the Make a Face lab used.
+### PIR motion sensor checks
+
+The PIR monitor reads the module's digital `OUT` on Nano D10. Its Serial Monitor output is `1 MOTION (HIGH)` or `0 clear (LOW)`; with an I2C OLED connected, the same state appears on screen. Allow about 30 seconds after power-up for the monitor to settle.
+
+For a sensor monitor, open Serial Monitor at 115200 baud, set the line ending to Newline, and send `test`. The OLED shows the raw `1`/`0` reading, its `MOTION`/`CLEAR` meaning, and elapsed time. Serial Monitor prints a CSV-style log (`elapsed,raw,status`) once per second and immediately when the sensor output changes. This PIR only reports motion detected or clear; it cannot identify the type of movement. Send `un test` or `normal` to return to the motion-state display. For maximum sensitivity, raise the sensor module's sensitivity/range adjustment; firmware cannot increase sensitivity beyond what the module outputs.
+
+A PIR detects changes in infrared heat, not a hand's distance. Test by walking across its view, with the sensor aimed at the area; a stationary person or a hand directly over the lens may not trigger it reliably. Check the module labels and wiring (`VCC` to 5V, `OUT` to D10, `GND` to GND). If it is an HC-SR501, adjust its sensitivity/range trimmer gradually; the other trimmer usually changes how long motion stays HIGH. Keep it away from direct sun, heaters, and moving warm air. Other PIR models may have different adjustment controls.
+
+![HC-SR501 TIME and SENS trimmer identification and adjustment directions.](bench/img/hc-sr501-adjustment.svg)
+
+The diagram is [here](img/pir-oled-wiring.svg).
+
+## Advanced sensing
+
+Mr. Reasy's own bench sensors, lent to pairs whose simple sensor already works in the browser. Ask him for one; they live on his bench, not the shelf. Several need a 3.3 V board with more memory than the Nano: the Nano 33 IoT (north racks, a few) or an ESP32-S3 from his bench.
+
+| Sensor | A signal it can give | How it talks | Board | Difficulty |
+|---|---|---|---|---|
+| MPR121 capacitive touch (12 pads) | `touched`, and which pad | I2C | Nano | Moderate. Any conductive thing becomes a pad: foil, fruit, graphite. |
+| RC522 RFID reader | `tagged`, and which card | SPI | Nano, 3.3 V power only | Moderate. Each card has its own ID, so a piece can know which object is on it. |
+| AS7341 / AS7343 spectral sensor | `colour`, `bright` | I2C | Nano | Moderate. Eight to fourteen colour bands; it needs steady light on the object. |
+| BNO080/085 IMU | `tilted`, `turning`, `still` | I2C | Nano 33 IoT or ESP32-S3 | Hard. Gives orientation directly; too big for the Nano's memory. |
+| INMP441 microphone | `loud` | I2S | Nano 33 IoT or ESP32-S3 | Hard. A real digital microphone; the Nano has no I2S. |
+| HLK-LD2450 radar | `near`, `present`, `count`, where people stand | UART at 256000 baud | Nano 33 IoT | Hard. Tracks up to three people by position, through thin walls and in the dark. |
+| Load cell, 10 kg or 15 kg bar | `loaded`, `weight` | Needs an amplifier board (HX711 or NAU7802) | Nano | Moderate once the amplifier is in hand. Ask Mr. Reasy whether one is free before you plan on it. |
+
+Same rule as the shelf: the sensor gives a number and your State Table gives it a meaning. A radar `count` of 2 is two bodies in range, not a crowd that wants anything.
+
+## Break log
+
+| Date | Commit hash | What broke | What changed |
+|---|---|---|---|
+| 2026-10-26 | 1c913a5a07dfea2014e49b03e6215f876e1c4122 (HEAD before uncommitted fixes) | The OLED sketch used 30 cm/120 cm thresholds and NEAR/HERE/EMPTY labels; it showed no sideways thumb, so the requested detection behavior was absent. | Set the bands to under 10 cm, 10–50 cm, and over 50 cm; changed labels to CLOSE/DETECTED/NOBODY and added up/sideways/down thumb orientations. |
+| 2026-10-26 | 1c913a5a07dfea2014e49b03e6215f876e1c4122 (HEAD before uncommitted fixes) | The first AVR compile after renaming the threshold failed because the unused sonar helper still referenced `NEAR_CM`. | Changed the helper to use `CLOSE_CM`; the updated sketch then compiled to AVR object code. |
+| 2026-10-26 | 1c913a5a07dfea2014e49b03e6215f876e1c4122 (HEAD before uncommitted fixes) | State changes were based on the smoothed distance, delaying the requested response when crossing a cutoff. | Use the latest raw reading for labels and thumbs; keep smoothing only for the displayed distance and graph. |
+| 2026-10-26 | Unavailable (this project folder is not a Git repository) | PlatformIO targeted `btatmega328`, which did not match the requested Arduino Nano hardware. | Changed the board target to `nanoatmega328` and verified the firmware builds for the Nano. |
+
+## State Table
+
+| Motions | Readings at the edge | LINE | GAP | Hold | Visitor learns it by | Piece does | For them / To them | Owner |
+|---|---|---|---|---|---|---|---|---|
+| Unhurried | 5.8, 6.1, 6.0 seconds | Keep sketch value | Keep sketch value | 6 s | OLED displays slow animation | OLED displays slow animation | For them: It gives feedback about movement. To them: It labels their movement as unhurried. | @dlaredo29-creator |
+| Rushing | 1, 1, 1 | 1 | 1 | 2 s | OLED giving an alert | D6: alarm/ alarm animation plays | For them: rewards engagement. To them: yells at you when doing that thing. | @dlaredo29-creator |
+| Nobody | 0, 0, 0 | 0 | 0 | 5 s | Screen going black indicates nobody | D6: nothing | For them: nothing. To them: turns off project. | @htolar |
 
 ## Credits 
 David Laredo, Henry Tolar 
@@ -79,11 +119,3 @@ David Laredo, Henry Tolar
 motion sensor
 
 https://dlaredo29-creator.github.io/team-repository-setup/
-
-## State Table
-
-| Name | Readings at the edge | LINE | GAP | Hold | Visitor learns it by | Piece does | For them / To them | Owner |
-|---|---|---|---|---|---|---|---|---|
-| Unhurried | 5.8, 6.1, 6.0 seconds | Keep sketch value | Keep sketch value | 6 s | OLED displays slow animation | OLED displays slow animation | For them: It gives feedback about movement. To them: It labels their movement as unhurried. | @dlaredo29-creator |
-| Rushing | 1, 1, 1 | 1 | 1 | 2 s | OLED giving an alert | D6: alarm/ alarm animation plays | For them: rewards engagement. To them: yells at you when doing that thing. | @dlaredo29-creator |
-| Nobody | 0, 0, 0 | 0 | 0 | 5 s | Screen going black indicates nobody | D6: nothing | For them: nothing. To them: turns off project. | @dlaredo29-creator |

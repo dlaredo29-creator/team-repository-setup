@@ -10,22 +10,25 @@ enum PirState {
 
 constexpr unsigned long PIR_RUSHING_HOLD_MS = 2000;
 constexpr unsigned long PIR_UNHURRIED_HOLD_MS = 5000;
+constexpr unsigned long PIR_NOBODY_TIMEOUT_MS = 5000;
 
 class PirStateTracker {
  public:
+  void reset() {
+    state_ = PIR_NOBODY;
+    motionSinceMs_ = 0;
+    noMotionSinceMs_ = 0;
+    trackingMotion_ = false;
+  }
+
   PirState update(unsigned long nowMs, bool motionDetected) {
     if (!motionDetected) {
       if (trackingMotion_) {
         trackingMotion_ = false;
-        holdSinceMs_ = nowMs;
-        holdDurationMs_ = state_ == PIR_UNHURRIED
-                              ? PIR_UNHURRIED_HOLD_MS
-                              : state_ == PIR_RUSHING
-                                    ? PIR_RUSHING_HOLD_MS
-                                    : 0;
+        noMotionSinceMs_ = nowMs;
       }
 
-      if (nowMs - holdSinceMs_ >= holdDurationMs_) {
+      if (nowMs - noMotionSinceMs_ >= PIR_NOBODY_TIMEOUT_MS) {
         state_ = PIR_NOBODY;
       }
       return state_;
@@ -34,7 +37,6 @@ class PirStateTracker {
     if (!trackingMotion_) {
       trackingMotion_ = true;
       motionSinceMs_ = nowMs;
-      holdDurationMs_ = 0;
     }
 
     const unsigned long heldMs = nowMs - motionSinceMs_;
@@ -52,8 +54,7 @@ class PirStateTracker {
  private:
   PirState state_ = PIR_NOBODY;
   unsigned long motionSinceMs_ = 0;
-  unsigned long holdSinceMs_ = 0;
-  unsigned long holdDurationMs_ = 0;
+  unsigned long noMotionSinceMs_ = 0;
   bool trackingMotion_ = false;
 };
 
